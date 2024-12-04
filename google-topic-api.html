@@ -52,10 +52,10 @@
                         topicsContainer.appendChild(topicDiv);
                     });
                 } catch (error) {
-                    document.getElementById("topicsContainer").innerHTML = "<p>Ошибка при получении тем: " + error.message + "</p>";
+                    document.getElementById("topicsContainer").innerHTML = "<p>Ошибка при получении тем: " + error.message + "<br>Проверьте, что ваш браузер поддерживает Topics API и разрешил доступ.</p>";
                 }
             } else {
-                document.getElementById("topicsContainer").innerHTML = "<p>Ваш браузер не поддерживает Google Topics API.</p>";
+                document.getElementById("topicsContainer").innerHTML = "<p>Ваш браузер не поддерживает Google Topics API или политика разрешений запретила его использование.</p>";
             }
         }
 
