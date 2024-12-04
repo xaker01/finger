@@ -19,6 +19,10 @@
         .topic-title {
             font-weight: bold;
         }
+        .error-message {
+            color: red;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -27,49 +31,51 @@
         Загрузка интересов пользователя...
     </div>
 
-   <script>
-    async function getGoogleTopics() {
-        if ("browsingTopics" in document) {
-            try {
-                const topics = await document.browsingTopics();
-                const topicsContainer = document.getElementById("topicsContainer");
-                topicsContainer.innerHTML = "";
+    <script>
+        function getGoogleTopics() {
+            if ("browsingTopics" in document) {
+                document.browsingTopics().then((topics) => {
+                    const topicsContainer = document.getElementById("topicsContainer");
+                    topicsContainer.innerHTML = "";
 
-                if (topics.length === 0) {
-                    topicsContainer.innerHTML = "<p>Интересы пользователя отсутствуют или не были определены.</p>";
-                    return;
-                }
+                    if (topics.length === 0) {
+                        topicsContainer.innerHTML = "<p>Интересы пользователя отсутствуют или не были определены.</p>";
+                        return;
+                    }
 
-                topics.forEach((topic, index) => {
-                    const topicDiv = document.createElement("div");
-                    topicDiv.className = "topic";
+                    topics.forEach((topic, index) => {
+                        const topicDiv = document.createElement("div");
+                        topicDiv.className = "topic";
 
-                    topicDiv.innerHTML = `
-                        <div class="topic-title">Тема ${index + 1}</div>
-                        <p><strong>ID темы:</strong> ${topic.topicId}</p>
-                        <p><strong>Название темы:</strong> ${topic.topicDisplayName}</p>
+                        topicDiv.innerHTML = `
+                            <div class="topic-title">Тема ${index + 1}</div>
+                            <p><strong>ID темы:</strong> ${topic.topicId}</p>
+                            <p><strong>Название темы:</strong> ${topic.topicDisplayName}</p>
+                        `;
+                        topicsContainer.appendChild(topicDiv);
+                    });
+                }).catch((error) => {
+                    document.getElementById("topicsContainer").innerHTML = `
+                        <p class="error-message">Ошибка при вызове Topics API: ${error.message}</p>
+                        <p>Возможные причины:</p>
+                        <ul>
+                            <li>Ваш браузер не поддерживает Google Topics API.</li>
+                            <li>Политика разрешений браузера запретила доступ.</li>
+                            <li>Вы не предоставили разрешение на доступ к интересам.</li>
+                        </ul>
+                        <p>Подробнее: Проверьте настройки браузера, разрешите доступ к интересам или используйте другой браузер, поддерживающий Topics API.</p>
                     `;
-                    topicsContainer.appendChild(topicDiv);
                 });
-            } catch (error) {
+            } else {
                 document.getElementById("topicsContainer").innerHTML = `
-                    <p>Ошибка при получении тем: ${error.message}</p>
-                    <p>Возможные причины:</p>
-                    <ul>
-                        <li>Ваш браузер не поддерживает Google Topics API.</li>
-                        <li>Политика разрешений в браузере запретила доступ.</li>
-                        <li>Вы не предоставили разрешение на доступ к интересам.</li>
-                    </ul>
+                    <p class="error-message">Ваш браузер не поддерживает Google Topics API или политика разрешений запретила его использование.</p>
+                    <p>Попробуйте использовать браузер с поддержкой Google Topics API и убедитесь, что необходимые разрешения были предоставлены.</p>
                 `;
             }
-        } else {
-            document.getElementById("topicsContainer").innerHTML = "<p>Ваш браузер не поддерживает Google Topics API или политика разрешений запретила его использование.</p>";
         }
-    }
 
-    // Запускаем получение тем
-    getGoogleTopics();
-</script>
-
+        // Запускаем получение тем
+        getGoogleTopics();
+    </script>
 </body>
 </html>
