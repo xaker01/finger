@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Topics API Example</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+        }
+        .topic {
+            padding: 10px;
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .topic-title {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Интересы пользователя из Google Topics API</h1>
+    <div id="topicsContainer">
+        Загрузка интересов пользователя...
+    </div>
+
+    <script>
+        async function getGoogleTopics() {
+            if ("browsingTopics" in document) {
+                try {
+                    const topics = await document.browsingTopics();
+                    const topicsContainer = document.getElementById("topicsContainer");
+                    topicsContainer.innerHTML = "";
+
+                    if (topics.length === 0) {
+                        topicsContainer.innerHTML = "<p>Интересы пользователя отсутствуют или не были определены.</p>";
+                        return;
+                    }
+
+                    topics.forEach((topic, index) => {
+                        const topicDiv = document.createElement("div");
+                        topicDiv.className = "topic";
+
+                        topicDiv.innerHTML = `
+                            <div class="topic-title">Тема ${index + 1}</div>
+                            <p><strong>ID темы:</strong> ${topic.topicId}</p>
+                            <p><strong>Название темы:</strong> ${topic.topicDisplayName}</p>
+                        `;
+                        topicsContainer.appendChild(topicDiv);
+                    });
+                } catch (error) {
+                    document.getElementById("topicsContainer").innerHTML = "<p>Ошибка при получении тем: " + error.message + "</p>";
+                }
+            } else {
+                document.getElementById("topicsContainer").innerHTML = "<p>Ваш браузер не поддерживает Google Topics API.</p>";
+            }
+        }
+
+        // Запускаем получение тем
+        getGoogleTopics();
+    </script>
+</body>
+</html>
