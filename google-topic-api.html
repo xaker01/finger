@@ -31,19 +31,48 @@
         Загрузка интересов пользователя...
     </div>
 
-    <script>
-        function getGoogleTopics() {
-            if ("browsingTopics" in document) {
-                document.browsingTopics().then((topics) => {
-                    const topicsContainer = document.getElementById("topicsContainer");
-                    topicsContainer.innerHTML = "";
-
-                    if (topics.length === 0) {
-                        topicsContainer.innerHTML = "<p>Интересы пользователя отсутствуют или не были определены.</p>";
-                        return;
+    <!-- Встраиваем iframe для получения данных из Google Topics API -->
+    <iframe id="topicsFrame" allow="browsing-topics" style="display:none;">
+        <html lang="ru">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Topics Iframe</title>
+        </head>
+        <body>
+            <script>
+                window.addEventListener("message", function(event) {
+                    if (event.data === "getTopics") {
+                        if ("browsingTopics" in document) {
+                            document.browsingTopics().then((topics) => {
+                                event.source.postMessage({ topics: topics }, event.origin);
+                            }).catch((error) => {
+                                event.source.postMessage({ error: error.message }, event.origin);
+                            });
+                        } else {
+                            event.source.postMessage({ error: "Ваш браузер не поддерживает Google Topics API." }, event.origin);
+                        }
                     }
+                });
+            </script>
+        </body>
+        </html>
+    </iframe>
 
-                    topics.forEach((topic, index) => {
+    <script>
+        window.addEventListener("message", function(event) {
+            if (event.origin !== window.location.origin) {
+                return; // Безопасность: проверяем источник сообщения
+            }
+            const topicsContainer = document.getElementById("topicsContainer");
+            if (event.data.error) {
+                topicsContainer.innerHTML = `<p class="error-message">Ошибка при вызове Topics API: ${event.data.error}</p>`;
+            } else if (event.data.topics) {
+                topicsContainer.innerHTML = "";
+                if (event.data.topics.length === 0) {
+                    topicsContainer.innerHTML = "<p>Интересы пользователя отсутствуют или не были определены.</p>";
+                } else {
+                    event.data.topics.forEach((topic, index) => {
                         const topicDiv = document.createElement("div");
                         topicDiv.className = "topic";
 
@@ -54,21 +83,16 @@
                         `;
                         topicsContainer.appendChild(topicDiv);
                     });
-                }).catch((error) => {
-                    document.getElementById("topicsContainer").innerHTML = `
-                        <p class="error-message">Ошибка при вызове Topics API: ${error.message}</p>
-                        <p>Проверьте настройки браузера или используйте другой браузер с поддержкой Google Topics API.</p>
-                    `;
-                });
-            } else {
-                document.getElementById("topicsContainer").innerHTML = `
-                    <p class="error-message">Ваш браузер не поддерживает Google Topics API или политика разрешений запретила его использование.</p>
-                `;
+                }
             }
-        }
+        });
 
-        // Запускаем получение тем
-        getGoogleTopics();
+        // Отправляем сообщение в iframe, чтобы начать загрузку тем
+        document.getElementById("topicsFrame").onload = function() {
+            document.getElementById("topicsFrame").contentWindow.postMessage("getTopics", window.location.origin);
+        };
     </script>
 </body>
 </html>
+
+
